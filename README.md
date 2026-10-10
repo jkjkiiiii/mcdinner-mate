@@ -189,6 +189,21 @@ uv pip install faster-whisper      # ASR，需要 NVIDIA GPU
 
 TTS 用 `edge-tts`，无需任何 Key。
 
+### 用法二：纯文本 Skill（零部署）
+
+不想装环境？仓库里还带了一份纯文本 Skill 定义 —— [`skill/SKILL.md`](skill/SKILL.md)。
+
+把它装进任何接了麦当劳 MCP 的 AI 客户端，就能直接用「陪餐对话」的全部能力：
+查历史订单、报营养热量、算价下单。区别只有一个 —— 没有语音。
+
+```
+skill/
+└── SKILL.md      # 人设 + 话术规则 + 工具调用流程 + 场景脚本
+```
+
+> 这也顺带说明了一件事：**这顿饭的陪伴能力本身不依赖语音**。
+> 语音是加分项，不是前提。
+
 ## 为什么必须用 MCP
 
 没有 MCP，这就是个普通的聊天机器人。是 MCP 让它变成"饭搭子"：
@@ -242,7 +257,9 @@ mcdinner-mate/
 │   ├── MCP_TOOLS.md           #   35 个工具名 + 入参 Schema（实测生成）
 │   ├── SUBMIT_ISSUE.md        #   报名文案与提交核对清单
 │   └── dev/                   #   12 份开发过程文档（含风险登记册、传播策略）
-└── assets/                    # 头图、吉祥物与报告卡样例
+├── skill/                     # 纯文本 Skill（可在 AI 客户端直接安装）
+├── tools/                     # 素材生成：演示 GIF / 一图流 / Banner
+└── assets/                    # 头图、吉祥物、演示动图与报告卡样例
 ```
 
 ## English Overview
