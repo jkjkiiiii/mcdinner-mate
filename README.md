@@ -60,6 +60,10 @@
 🤖 "今日报告来了 📋" → 生成分享卡片
 ```
 
+<p align="center">
+  <img src="assets/report-card-sample.png" alt="饭后报告卡" width="380">
+</p>
+
 > ⚠️ 下单链路**只到"待支付"为止**，不集成支付、不自动支付，支付需前往麦当劳 App / 小程序完成。
 
 ### 明确不做
