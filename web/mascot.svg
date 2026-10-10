@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220" role="img" aria-label="McDinnerMate mascot: a small warm glowing companion">
+  <defs>
+    <radialGradient id="mm-glow" cx="50%" cy="54%" r="50%">
+      <stop offset="0%" stop-color="#FFC96B" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#FFC96B" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFC96B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mm-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF6E2"/>
+      <stop offset="55%" stop-color="#FFE3AE"/>
+      <stop offset="100%" stop-color="#FFCE7A"/>
+    </linearGradient>
+    <linearGradient id="mm-tray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8925C"/>
+      <stop offset="100%" stop-color="#D97A48"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ambient warm glow -->
+  <ellipse cx="100" cy="130" rx="96" ry="88" fill="url(#mm-glow)"/>
+
+  <!-- rising curl of warm light / speech bubble -->
+  <path d="M100 50 C 86 38 114 32 100 18" fill="none" stroke="#FFCE7A" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="100" cy="13" r="9" fill="#FFE3AE" opacity="0.95"/>
+
+  <!-- tray hint (sits beneath the body) -->
+  <ellipse cx="100" cy="186" rx="64" ry="12" fill="url(#mm-tray)"/>
+
+  <!-- body: one soft round blob -->
+  <path d="M100 56 C 143 56 173 87 173 127 C 173 160 142 182 100 182 C 58 182 27 160 27 127 C 27 87 57 56 100 56 Z" fill="url(#mm-body)"/>
+
+  <!-- soft highlight -->
+  <ellipse cx="76" cy="98" rx="21" ry="13" fill="#FFFFFF" opacity="0.45" transform="rotate(-20 76 98)"/>
+
+  <!-- eyes: two shallow smiling arcs, no mouth -->
+  <path d="M72 124 Q85 136 98 124" fill="none" stroke="#8A5A2B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M102 124 Q115 136 128 124" fill="none" stroke="#8A5A2B" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- warm blush -->
+  <ellipse cx="61" cy="141" rx="11" ry="6" fill="#E8925C" opacity="0.35"/>
+  <ellipse cx="139" cy="141" rx="11" ry="6" fill="#E8925C" opacity="0.35"/>
+</svg>
