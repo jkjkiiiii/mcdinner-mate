@@ -24,7 +24,11 @@ openai>=1.40
 # --- 语音 ---
 edge-tts>=6.1
 # ASR 使用本地 faster-whisper（需 NVIDIA GPU），单独安装：
-#   uv pip install faster-whisper
+#   uv pip install "faster-whisper" "av>=14,<19"
+# ⚠️ 必须锁 av<19：PyAV 19 移除了 av.open() 的 metadata_errors 参数，
+#    而 faster-whisper 1.2.x 仍在传它，装到 19.x 会直接
+#    TypeError: open() got an unexpected keyword argument 'metadata_errors'。
+#    上游声明的只是 av>=11，不锁就会踩。
 # 中国区下载模型可设：HF_ENDPOINT=https://hf-mirror.com
 
 # --- 报告卡渲染 ---
