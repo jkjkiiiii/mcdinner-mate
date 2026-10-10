@@ -32,7 +32,9 @@
 
 ## 2. 实际使用的 Tool
 
-`list_tools()` 实测返回 **35 个工具**。本项目按对话意图映射使用其中 12 个：
+`list_tools()` 实测返回 **35 个工具**。本项目按对话意图映射使用其中 **15 个**
+（对应 `server/dialog/engine.py` 的 `DIALOG_TOOLS`）。**只暴露这 15 个是有意为之**：
+把 35 个工具全量喂给 27B 模型会让它在 `max_tokens` 内吐不出内容（`finish_reason=length`、content 为空）。
 
 | 意图 | Tool | 业务价值 |
 | --- | --- | --- |
@@ -42,6 +44,7 @@
 | 查活动 | **`campaign-calendar`** | 当月营销日历（进行中 / 往期 / 未来） |
 | 领券 | **`available-coupons`**、**`auto-bind-coupons`** | 陪聊中顺手把券领好，并口头播报结果 |
 | 查我的券 | **`query-my-coupons`** | — |
+| 我的账号 | **`query-my-account`** | 积分 / 卡券概览，补充"被记住"的上下文 |
 | 门店可用券 | **`query-store-coupons`** | 下单前精算，比"可领券"更贴合当前门店 |
 | 找门店 | **`query-nearby-stores`** | 到店自提场景按城市 + 关键词检索，返回 `storeCode` |
 | 收货地址 | **`delivery-query-addresses`** | 麦乐送场景取 `addressId` |
@@ -62,8 +65,9 @@
 
 ```
 query-nearby-stores        → 取 storeCode / beCode
+                             （.env 已配常去门店时跳过，本项目默认注入到系统提示）
   ↓
-query-meals                → 当前门店在售餐品
+query-meals                → 当前门店在售餐品（实测 124 项）
 query-meal-detail          → 套餐组成与可替换项
   ↓
 list-nutrition-foods       → 热量 / 营养（本地缓存 30min）
@@ -71,9 +75,22 @@ list-nutrition-foods       → 热量 / 营养（本地缓存 30min）
 query-store-coupons        → 该门店可用券
   ↓
 calculate-price            → 应付金额（分 → 元 归一化）
+                             ★ 同时返回 takeWayList，供下一步取值
   ↓
 create-order               → 待支付订单 + 支付链接（15 分钟内有效）
+                             ★ 到店场景 takeWayCode 必传
 ```
+
+> **两个实测踩到的坑（都已修，见 commit 记录）**
+>
+> 1. **`create-order` 的 `takeWayCode` 必传**。到店场景（`orderType=1`）必须带上它，
+>    取值**只能**来自 `calculate-price` 返回的 `takeWayList[].code`：
+>    `eat-in`（堂食）/ `locker-in`（外带）。漏传直接建单失败 —— 而大模型并不天然
+>    知道有这么一个字段。本项目做了**双保险**：`engine._fill_order_defaults()` 里兜底注入
+>    （默认 `eat-in`），同时在提示词里写明取值来源。
+>    注意外送场景（`orderType=2`）**不能**带该字段，带了反而报错。
+> 2. **金额单位是「分」不是「元」**。`calculate-price` 返回 `price: 4150` 即 ¥41.5，
+>    `productList[].subtotal` 同样是分，直接展示会差 100 倍 —— 见下节归一化处理。
 
 ### 麦乐送（orderType=2）
 
@@ -104,7 +121,7 @@ order-list                 → 拉取历史订单
 | --- | --- |
 | **缓存** | 菜单、营养、活动日历等静态数据本地缓存 ≥ 30 分钟 |
 | **限流** | 失败重试 1 次 + 指数退避，避免 Demo 时触发 429 |
-| **单位归一化** | MCP 所有金额单位为「分」，在 MCP 层统一 ÷100 转为「元」后再上抛 |
+| **单位归一化** | MCP 所有金额单位为「分」。`add_yuan_fields()` 在 MCP 层为**顶层与 `productList` 逐项**追加 `*_yuan` 副本（原字段保留，以维持与官方 schema 一致），上层一律读 `*_yuan` |
 | **营养解析** | `list-nutrition-foods` 返回 toon 紧凑格式（如 `[160]{productName,energyKcal,...}`），本项目写专用解析器并加单测；**解析失败时拒绝回答** |
 | **兜底话术** | 工具失败时口播兜底（如"麦门信号不好，先直接给你看菜单"），不中断对话 |
 
@@ -123,9 +140,25 @@ order-list                 → 拉取历史订单
 ## 6. 复现验证
 
 ```bash
-python scripts/mcp_probe.py         # 打印生效地址、协议版本、35 个工具清单
-python scripts/mcp_smoke.py         # 只读冒烟：时间 / 门店 / 历史订单 / 地址 / 营养 / 活动
-python scripts/fetch_account_info.py# 抓取门店与收货地址 ID
+python scripts/mcp_probe.py          # 打印生效地址、协议版本、35 个工具清单
+python scripts/mcp_smoke.py          # 只读冒烟：时间 / 门店 / 历史订单 / 地址 / 营养 / 活动
+python scripts/fetch_account_info.py # 抓取门店与收货地址 ID
+python scripts/mcp_price_check.py    # 菜单取码 → 算价 → 单位核对（只读）
+python scripts/e2e_smoke.py          # 端到端：真实大模型 + 真实 MCP 跑 3 轮对话（只读）
+python scripts/asr_check.py          # 本地 ASR 冒烟（TTS 合成音频 → 识别回文字）
+python scripts/debug_turn.py "就这个，多少钱？"   # 单轮调试，逐轮打印 tool_calls 与 finish_reason
 ```
 
-> 全部为**只读调用**，不会创建任何订单。
+> **以上全部为只读调用，不会创建任何订单。**
+> `create-order` 仅在真实对话中由用户确认后才触发，且只到「待支付」为止。
+
+### 实测记录（真实调用，非构造数据）
+
+| 项 | 实测结果 |
+| --- | --- |
+| 工具数 | `list_tools()` → **35 个** |
+| 菜单 | 门店 `1950814` → **122~124 项**（`data.meals` 是 `{code: {...}}` 字典，不是数组） |
+| 算价 | 三件套 ¥33.5 + 薯饼 ¥8.0 = `price: 4150` 分 = **¥41.5**，逐项 `subtotal` 与 `productList` 严格吻合 |
+| 取餐方式 | `takeWayList` → `eat-in`（堂食）/ `locker-in`（外带） |
+| 历史订单 | `order-list` → 返回真实历史订单，用于开场"被记住"（聚合在本地 SQLite 完成） |
+| 营养 | `list-nutrition-foods` → toon 紧凑格式，解析后热量与官方一致 |

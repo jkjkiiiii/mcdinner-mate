@@ -50,12 +50,27 @@
 
 | 类型 | 文件 |
 | --- | --- |
-| 可行性评估 | `FEASIBILITY.md` |
-| 开发文档（12 份） | `docs/dev/01~11`、`docs/design/BANNER.md` |
-| MCP 接入说明 | `MCP_INTEGRATION.md` |
-| 真实工具清单 | `docs/MCP_TOOLS.md`、`docs/samples/` |
-| 视觉资产 | `assets/banner-final-1280x640.png`、`assets/mascot.svg` |
-| 探测脚本 | `scripts/mcp_probe.py`、`mcp_smoke.py`、`fetch_account_info.py` |
+| 可行性评估 | [`FEASIBILITY.md`](FEASIBILITY.md)（6 维度评分 + 风险清单 + 开工前 GO/NO-GO 复审） |
+| 开发文档（12 份） | [`docs/dev/00~11`](docs/dev/)、[`docs/design/BANNER.md`](docs/design/BANNER.md) |
+| MCP 接入说明 | [`MCP_INTEGRATION.md`](MCP_INTEGRATION.md) |
+| 真实工具清单 | [`docs/MCP_TOOLS.md`](docs/MCP_TOOLS.md)（35 个工具名 + 入参 Schema） |
+| 视觉资产 | [`assets/banner-final-1280x640.png`](assets/banner-final-1280x640.png)、[`assets/mascot.svg`](assets/mascot.svg)、[`assets/report-card-sample.png`](assets/report-card-sample.png) |
+| 探测 / 验证脚本 | `scripts/mcp_probe.py`、`mcp_smoke.py`、`fetch_account_info.py`、`mcp_price_check.py`、`e2e_smoke.py`、`asr_check.py`、`debug_turn.py` |
+| 离线单测 | `tests/`（14 个用例，不联网、不需要 Token） |
+
+---
+
+## 5. 开发过程中的关键决策记录
+
+WorkBuddy 不只写代码，几个决定项目成败的判断也来自它：
+
+| 判断 | 内容 |
+| --- | --- |
+| **定位转向** | 从"点餐效率"转向"陪餐情绪价值"——避开与百余个同类工具的红海竞争 |
+| **合规优先** | 赛事禁止讽刺贬低品牌，故人设默认 `gentle`；`sarcastic` 仅吐槽工作与生活 |
+| **文件名纠错** | 指出自造的 `SUBMISSION.md` / `MCP_SETUP.md` 不符合官方要求，纠正为官方指定的 `CONTEST_DECLARATION.md` / `MCP_INTEGRATION.md`，并补出缺失的 `mcp-config.example.json`、`workbuddy.md` |
+| **算价链路提速** | e2e 实测发现算价要 5 轮 128 秒才完成，逐轮抓 `tool_calls` 定位到两处浪费，优化后 **3 轮 20 秒（提速 6.4 倍）**，详见 `docs/dev/10-risks.md` |
+| **依赖版本锁定** | 定位 `mcp 1.12` ↔ `pydantic<2.12` 冲突；定位 PyAV 19 移除 `metadata_errors` 导致 faster-whisper 报错 |
 
 ---
 
