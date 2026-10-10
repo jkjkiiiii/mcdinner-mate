@@ -1,0 +1,188 @@
+══════════════════════════════════════════════════════════════════
+ 麦麦陪餐搭子 · 30s 宣传片 · 提示词速查表
+ 完整分镜与后期说明见 docs/design/VIDEO_SCRIPT-PROMO-30s.md
+══════════════════════════════════════════════════════════════════
+
+【使用方式】
+  1. 中文提示词 → 即梦 / 可灵 / 海螺 / Vidu
+  2. 英文提示词 → Sora / Runway / Pika
+  3. 一律「图生视频」：先上传 assets/video-refs/ 里对应的 REF-0X 作首帧
+  4. 比例先调 16:9，分辨率 1080p，每镜生成 2~3 条挑一条
+  5. 运镜只写"轻"的（缓推/横移/固定微动），不要写环绕、快速跟拍
+
+【通用负面提示词（每镜都加）】
+  文字, 字幕, 水印, 商标, Logo, 金色拱门, 正脸, 多人, 运动模糊,
+  画面畸变, 卡通, 3D渲染, 过曝, 塑料感
+  ── 英文版 ──
+  text, subtitles, watermark, logo, brand marks, golden arches,
+  frontal face, multiple people, motion blur, distortion,
+  cartoon, 3D render, overexposed, plastic look
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 1 · 深夜写字楼（3.5s）  首帧：REF-01_office-exit.jpg
+ 运镜：固定 + 极缓推 3%
+──────────────────────────────────────────────────────────────────
+[中文]
+电影感夜景，35mm 变形镜头，一个人背对镜头走出玻璃写字楼的旋转门，深色外套，
+单肩包。冷蓝紫色城市夜色，地面湿漉漉反着光，一盏暖黄路灯勾出他的肩线轮廓。
+浅景深，低照度低调光，胶片颗粒，街道空无一人。
+
+[English]
+Cinematic night shot, 35mm anamorphic. A lone figure seen from behind walks out
+of a glass office building's revolving door — dark jacket, shoulder bag. Cold
+blue-violet city night, wet reflective pavement, a single warm amber street lamp
+rimming his shoulders. Shallow depth of field, low-key lighting, film grain,
+empty street.
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 2 · 玻璃与暖光（3.5s）  首帧：REF-02_glass.jpg  ⚠️ 建议重生成
+ 运镜：极缓横移（左→右，约 6s 走完一个画面宽）
+──────────────────────────────────────────────────────────────────
+[中文]
+电影感夜景，50mm。从街上拍一家快餐店的大玻璃窗，店内暖黄色灯光透出来，
+玻璃上映出一个正要进门的模糊背影剪影。店外是冷蓝夜色，冷暖强对比。
+浅景深，胶片颗粒，安静孤独的氛围。
+
+[English]
+Cinematic night shot, 50mm. Exterior of a fast-food restaurant from the street —
+large glass window spilling warm amber interior light. A blurred back-view
+silhouette reflected in the glass, about to enter. Cold blue night outside,
+strong warm/cold contrast. Shallow depth of field, film grain, quiet lonely mood.
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 3 · 一个人的餐盘（5.0s）⭐ 情绪最高点  首帧：REF-03_meal.jpg
+ 运镜：缓推向下的俯角（30° → 40°，极慢）
+ 关键：对面那把空椅子必须看得见，看不见就重生成（把 empty chair 提到句首加权）
+──────────────────────────────────────────────────────────────────
+[中文]
+电影感静物特写，微俯角，85mm。深色餐桌上摆着一个人的一顿饭：一个普通汉堡、
+一纸袋薯条、一杯插着吸管的饮料。暖黄顶光，热气微微升腾，背景很暗。
+桌子对面是一把空椅子，虚焦。浅景深，浓重阴影，胶片颗粒，安静的孤独感。
+
+[English]
+Cinematic still-life close-up, slightly overhead, 85mm. A single-person meal on a
+dark table: a plain burger, a paper sleeve of fries, a cup with a straw. Warm
+amber top light, faint steam, very dark background. An empty chair across the
+table, out of focus. Shallow depth of field, rich shadows, film grain.
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 4 · 光在桌面上亮起来（4.0s）⭐ 转折点  首帧：REF-04_phone.jpg
+ 运镜：固定机位，只让屏幕光自己变化（最稳）
+ 进阶：屏幕内容保持不可读，后期在剪映用「跟踪+替换」贴真实界面截图
+──────────────────────────────────────────────────────────────────
+[中文]
+电影感特写，50mm 微距。深夜餐桌上一部手机正面朝上放在纸杯旁，屏幕刚刚亮起，
+把一小片温暖的琥珀色光投在木桌纹理上。屏幕内容是深色界面，模糊不可读。
+一只手的手指从画面右侧入镜。暖黄主光，环境冷色衰减，极浅景深，胶片颗粒，
+亲密的氛围。
+
+[English]
+Cinematic close-up, 50mm macro. A smartphone lies face-up on a dark restaurant
+table beside a paper cup, its screen just lighting up and casting a small pool of
+warm amber light across the wood grain. Screen content dark, blurred, unreadable.
+Fingers of one hand entering frame from the right. Warm amber key light, cold
+ambient falloff, very shallow depth of field, film grain, intimate mood.
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 5 · 真实产品界面（7.0s）⭐ 全片唯一的"证据"
+ ★ 不要用 AI 生成 ★ 用真实截图 + 剪映推拉
+──────────────────────────────────────────────────────────────────
+ 5a  00:16–00:18   开场第一句：它提起你上次点的那份        → order-list
+ 5b  00:18–00:20.5 「麦辣鸡腿汉堡三件套，33 块 5」        → calculate-price
+ 5c  00:20.5–00:23 订单确认卡片：待支付 / ¥33.5 / 堂食     → create-order
+
+ 素材来源（三选一）：
+   a) ffmpeg -ss <秒> -i assets/demo-video.mp4 -frames:v 1 out.png
+   b) 重跑 python tools/record_demo.py，取
+      demo_raw/01c_reply.png、demo_raw/02c_reply.png、demo_raw/03d_card.png
+   c) 起服务后浏览器官网截图：python -m server.main
+
+ 后期：每段缓慢放大 8%；段间 6 帧交叉溶解；5c 入场时加一记极轻的琥珀色闪
+       ⚠️ 订单号后 4 位打码
+       ⚠️ 界面保持原生深色 #12141a，不要加任何滤镜
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 6 · 他松下来了（3.5s）  首帧：REF-05_profile.jpg
+ 运镜：固定 + 极缓推（几乎不动，让表情自己发生）
+ ⚠️ 这张参考图脸部较清晰，若严守 BANNER.md「无人脸」规范，
+    改拍「手 + 屏幕光 + 下颌线」或「背影抬手」，情绪损失很小
+──────────────────────────────────────────────────────────────────
+[中文]
+电影感中近景夜景，85mm。一个年轻人的侧后四分之三视角，微微低着头看手里下方
+屏幕外的手机。屏幕的冷光勾出发际和面颊的一侧，餐厅的暖黄光填满另一侧。
+表情放松，嘴角有一个很浅的笑。半张脸在阴影里，侧向背对镜头，背景虚化很暗。
+浅景深，胶片颗粒，温柔安静的情绪。
+
+[English]
+Cinematic medium close-up, night, 85mm. A young person's three-quarter-back
+profile, head lowered, looking down at a phone held below frame. Cool screen
+light rims one side of the hair and cheek, warm amber restaurant light fills the
+other. Relaxed expression, a faint beginning of a smile. Half the face in shadow,
+mostly turned away from camera, very dark blurred background. Shallow depth of
+field, film grain, tender quiet mood.
+
+
+──────────────────────────────────────────────────────────────────
+ 镜 7 · 品牌卡（3.5s）  底图：REF-06_endcard-bg.jpg（不是首帧，是背景）
+ ★ 文字绝不交给 AI 生成 ★ 全部用剪映/代码后期叠加
+──────────────────────────────────────────────────────────────────
+ 画面层：
+   1. 底图缓推 5%
+   2. 左侧「光团子」吉祥物淡入（assets/mascot.svg，可做呼吸式泛光）
+   3. 标题 → Slogan → 副标 依次淡入
+   4. 底部 CTA
+
+ 文字规格（沿用 BANNER.md 已冻结字号体系）：
+   00:26.5  麦麦陪餐搭子                              微软雅黑 Bold  #FFFCF5
+   00:27.3  一个人吃饭，但不孤单                      微软雅黑 Bold  #FFCE7A
+   00:27.9  McDinnerMate · 基于麦当劳 MCP 的语音陪餐搭子  雅黑 Regular #AAB2C2
+   00:28.6  ▶ 完整实测演示已开源 · github.com/jkjkiiiii/mcdinner-mate
+                                                     微软雅黑 Bold  #FFCE7A
+
+
+══════════════════════════════════════════════════════════════════
+ 旁白（女声，语速放慢到 4.2~4.5 字/秒，句间留 0.4s 以上）
+ 建议音色 zh-CN-XiaoxiaoNeural，共 87 字 ≈ 19 秒，留 11 秒纯画面呼吸
+══════════════════════════════════════════════════════════════════
+ 00:03.5  晚上九点，又是一个人。
+ 00:07.0  一个人吃饭，难的从来都不是饭。
+ 00:10.5  是没人说话。
+ 00:16.0  所以我们做了个饭搭子。
+ 00:18.5  它记得你上次点了什么，报价一分不差。
+ 00:23.0  帮你把单下好，陪你把这顿吃完。
+ 00:27.0  一个人吃饭，但不孤单。
+
+
+══════════════════════════════════════════════════════════════════
+ 竖版（9:16）裁切提示
+══════════════════════════════════════════════════════════════════
+小红书 / 视频号需要竖版，两种做法：
+
+ A. 生成时就出 9:16（推荐）
+    把提示词末尾加一句：
+      「构图纵向，主体置于画面中央偏上，上下留出安全区，主体不要贴边」
+    Cinematic vertical 9:16 composition, subject centered slightly above middle,
+    generous headroom and bottom safe area, subject never touching the frame edges.
+
+ B. 横版裁竖版
+    只适合镜 1 / 镜 3 / 镜 4 / 镜 6（主体居中）；镜 2 和镜 5 裁竖版会丢内容，
+    镜 5 必须重新录一版竖屏（把浏览器窗口调成 720×1280 再跑 record_demo.py）。
+
+ 竖版字幕区：底部上方 18%（比横版更高），避开平台 UI 遮挡。
+
+
+══════════════════════════════════════════════════════════════════
+ 合规自查（发布前逐条过）
+══════════════════════════════════════════════════════════════════
+ □ 全片无品牌 Logo / 金色拱门 / 可读品牌文字 / 带商标包装
+ □ 无贬低、无与其他品牌对比
+ □ 无鼓吹多吃、无不健康饮食导向
+ □ 情绪克制，无醉汉/垃圾/痛哭等"卖惨"符号
+ □ 订单号已打码
+ □ BGM 已确认商用授权

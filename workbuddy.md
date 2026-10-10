@@ -58,6 +58,7 @@
 | MCP 接入说明 | [`MCP_INTEGRATION.md`](MCP_INTEGRATION.md) |
 | 真实工具清单 | [`docs/MCP_TOOLS.md`](docs/MCP_TOOLS.md)（35 个工具名 + 入参 Schema） |
 | 视觉资产 | [`assets/banner-final-1280x640.png`](assets/banner-final-1280x640.png)、[`assets/mascot.svg`](assets/mascot.svg)、[`assets/report-card-sample.png`](assets/report-card-sample.png) |
+| **传播物料** | [`docs/design/VIDEO_SCRIPT-PROMO-30s.md`](docs/design/VIDEO_SCRIPT-PROMO-30s.md)（30s 宣传片分镜脚本 + AI 生成提示词）、[`docs/design/VIDEO_PROMPTS-30s.txt`](docs/design/VIDEO_PROMPTS-30s.txt)（提示词速查表）、`assets/video-refs/REF-01~06`（首帧参考图） |
 | **演示视频** | [`assets/demo-video.mp4`](assets/demo-video.mp4)（90s，1920×1080，真实界面 + 旁白字幕）、[`assets/demo-chat.gif`](assets/demo-chat.gif)、[`assets/demo-showcase.png`](assets/demo-showcase.png) |
 | 探测 / 验证脚本 | `scripts/mcp_probe.py`、`mcp_smoke.py`、`fetch_account_info.py`、`mcp_price_check.py`、`mcp_create_order.py`、`e2e_smoke.py`、`asr_check.py`、`debug_turn.py` |
 | 素材工具 | `tools/make_demo.py`（GIF/拼图）、`tools/record_demo.py`（真实浏览器录制）、`tools/make_demo_video.py`（视频合成） |
