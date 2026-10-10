@@ -14,7 +14,21 @@
   <a href="#它到底能干什么">功能</a> ·
   <a href="#架构">架构</a> ·
   <a href="MCP_INTEGRATION.md">MCP 接入说明</a> ·
-  <a href="#目标用户">目标用户</a>
+  <a href="#目标用户">目标用户</a> ·
+  <a href="#english-overview">English</a>
+</p>
+
+---
+
+<p align="center">
+  <img src="assets/demo-chat.gif" alt="真实对话演示：从「今天加班到九点」到「¥33.5，堂食还是打包」" width="88%">
+</p>
+
+<p align="center">
+  <sub>
+    真实运行录屏（本地 Qwen3-27B-VL + 麦当劳 MCP）｜
+    历史订单来自 <code>order-list</code>，价格来自 <code>calculate-price</code>
+  </sub>
 </p>
 
 ---
@@ -35,12 +49,16 @@
 
 | 能力 | 说明 | 依赖的 MCP 工具 |
 | --- | --- | --- |
-| **记忆感** | 开场就知道你最近吃了什么，"上周你吃了 3 次麦辣，今天换个口味？" | `order-list` |
-| **专业感** | 随口报热量、给替代方案，**数据全部来自官方接口，绝不编造** | `list-nutrition-foods` |
-| **实利感** | 陪聊中顺手查活动、自动把券领好 | `campaign-calendar` / `available-coupons` / `auto-bind-coupons` |
-| **闭环感** | 真的帮你下单，到"待支付"为止 | `query-meals` → `calculate-price` → `create-order` |
-| **陪伴感** | 等餐和吃饭时陪你吐槽老板、需求和 bug | 本地大模型 + 人设 prompt |
-| **仪式感** | 吃完生成一张可分享的饭后报告卡 | 本地渲染 |
+| 🧠 **记忆感** | 开场就提起你最近常点的东西 —— 历史订单是真实数据，不是人设扮演 | `order-list` |
+| 🥗 **专业感** | 随口报热量、给替代方案，**数据全部来自官方接口，绝不编造** | `list-nutrition-foods` |
+| 🎟️ **实利感** | 陪聊中顺手查活动、自动把券领好 | `campaign-calendar` / `available-coupons` / `auto-bind-coupons` |
+| ✅ **闭环感** | 真的帮你下单，到「待支付」为止 | `query-meals` → `calculate-price` → `create-order` |
+| 💬 **陪伴感** | 等餐和吃饭时陪你吐槽老板、需求和 bug | 本地大模型 + 人设 prompt |
+| 📋 **仪式感** | 吃完生成一张可分享的饭后报告卡 | 本地渲染 |
+
+<p align="center">
+  <img src="assets/demo-showcase.png" alt="三个核心：它记得你 / 价格是真的 / 吃完有张卡" width="78%">
+</p>
 
 ### 一段真实对话
 
@@ -84,24 +102,41 @@
 
 ## 架构
 
-```
-┌────────────── 浏览器（单页）──────────────┐
-│    录音(MediaRecorder)   播放   卡片展示    │
-└──────────────────┬───────────────────────┘
-                   │ WebSocket (音频帧 + 事件)
-┌──────────────────▼───────────────────────┐
-│  FastAPI 后端                             │
-│  ASR(本地 Whisper) → 对话引擎(LLM+tools)  │
-│  TTS(edge-tts)  ←   · 人设 prompt         │
-│                     · 状态机              │
-│                     · 记忆读写(SQLite)    │
-│  MCP 工具层（缓存 / 限流 / 单位归一化）     │
-└─────────────────────────┬─────────────────┘
-                          │ Streamable HTTP
-                   https://mcp.mcd.cn (Bearer Token)
+```mermaid
+flowchart TD
+    subgraph FE["浏览器 · 单页应用"]
+        direction LR
+        f1["按住说话<br/>录音 → 音频帧"]
+        f2["回复播报<br/>开口即打断"]
+        f3["气泡与卡片<br/>订单 / 报告卡"]
+    end
+
+    subgraph BE["FastAPI 后端"]
+        direction TB
+        asr["本地 ASR<br/>faster-whisper large-v3"]
+        eng["对话引擎<br/>Qwen3-27B-VL + 人设 + 状态机"]
+        tts["TTS<br/>edge-tts"]
+        mem[("SQLite<br/>会话 · 画像")]
+        mcpl["MCP 工具层<br/>缓存 · 限流 · 单位归一化"]
+    end
+
+    subgraph MCD["麦当劳 MCP Server"]
+        tools["35 个工具<br/>菜单 · 营养 · 优惠券 · 算价 · 下单"]
+    end
+
+    f1 -- "WebSocket 音频帧" --> asr
+    asr --> eng
+    eng <--> mem
+    eng --> mcpl
+    eng --> tts
+    tts -- "音频" --> f2
+    mcpl -- "Streamable HTTP<br/>Bearer Token" --> tools
+    eng --> f3
 ```
 
-一轮完整对话：录音 → 本地 ASR 出文本 → 组装 prompt（人设 + 记忆 + 近期对话）→ LLM 决策调工具 → MCP 层（先查缓存）→ 结果回灌 LLM → 生成回复 → TTS 播报 + 前端渲染卡片 → 关键事件写 SQLite。
+> 一轮完整对话：录音 → 本地 ASR 出文本 → 组装 prompt（人设 + 记忆 + 近期对话）→
+> LLM 决策调工具 → MCP 层（先查缓存）→ 结果回灌 LLM → 生成回复 →
+> TTS 播报 + 前端渲染卡片 → 关键事件写 SQLite。
 
 ## 快速开始
 
@@ -209,6 +244,30 @@ mcdinner-mate/
 │   └── dev/                   #   12 份开发过程文档（含风险登记册、传播策略）
 └── assets/                    # 头图、吉祥物与报告卡样例
 ```
+
+## English Overview
+
+**McDinnerMate** is a voice companion for people who eat alone, built on McDonald's
+official **MCP Server**. Most assistants optimize *how to order faster* — this one asks a
+different question: *who eats this meal with you?*
+
+| Capability | What it does | MCP Tool |
+| --- | --- | --- |
+| 🧠 **Remembers you** | Opens with what you ordered recently — real history, not a persona | `order-list` |
+| 🥗 **Knows the numbers** | Calories straight from the official API; refuses to guess | `list-nutrition-foods` |
+| 🎟️ **Grabs the deals** | Checks campaigns and auto-binds coupons while you chat | `campaign-calendar` / `auto-bind-coupons` |
+| ✅ **Actually orders** | Really places the order — stops at *awaiting payment* | `query-meals` → `calculate-price` → `create-order` |
+| 💬 **Keeps you company** | Chats while you wait and eat | local LLM + persona |
+| 📋 **A card to remember** | Generates a shareable post-meal card | local render |
+
+**Stack** — FastAPI + WebSocket · local `faster-whisper` ASR · `edge-tts` ·
+Qwen3-27B-VL tool calling · SQLite memory · McDonald's MCP (`https://mcp.mcd.cn`, 35 tools).
+
+**Quick start** — see [快速开始](#快速开始) below. You need an MCP token from
+[open.mcd.cn/mcp](https://open.mcd.cn/mcp), plus any OpenAI-compatible model with tool calling.
+
+> Orders stop at **awaiting payment** — no payment integration, no auto-pay.
+> Nutrition and price data are always exactly as returned by the official API.
 
 ## 参与赛事
 
