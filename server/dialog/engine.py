@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,12 @@ from .persona import get_persona, stage_hint
 from .state_machine import StateMachine
 
 MAX_ROUNDS = 5
+
+# ---------------------------------------------------------------- Markdown 清洗
+_MD_IMAGE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+_MD_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+_MD_HEAD = re.compile(r"^[ \t]{0,3}#{1,6}[ \t]*", re.M)
+_MD_BULLET = re.compile(r"^[ \t]*[-*+][ \t]+", re.M)
 
 # 对话引擎真正会用到的工具。
 # 教训：MCP 一共有 35 个工具，全量塞给 27B 模型会让它在 max_tokens 内吐不出内容
@@ -169,6 +176,9 @@ class DialogEngine:
         use_cache = name in self.cfg.cacheable_tools
         try:
             res = await self.mcp.call(name, args, use_cache=use_cache)
+            if name == "create-order":
+                res = await self._enrich_order(res)
+                card = self._order_card(res)
             text = self._slim_result(name, res)
             if text is None:
                 if isinstance(res, (dict, list)):
@@ -178,11 +188,72 @@ class DialogEngine:
             # 上下文可能很长（菜单/营养全表），截断保护
             if len(text) > self.MAX_TOOL_CHARS:
                 text = text[: self.MAX_TOOL_CHARS] + " …(已截断)"
-            return {"ok": True, "data": text}, None
+            return {"ok": True, "data": text}, card
         except Exception as e:                              # noqa: BLE001
             self.sm.advance(state, name)
             return {"ok": False, "error": str(e)[:200],
                     "fallback": self.sm.fallback(name)}, None
+
+    # 订单卡要用到的展示字段。create-order 的返回**实测只带 orderId**，
+    # 门店/金额/取餐方式/支付时限都在 query-order 里，缺了就得补一次。
+    _ORDER_CARD_FIELDS = ("storeName", "totalAmount", "takeWay", "expirePayTime")
+
+    async def _enrich_order(self, res: Any) -> Any:
+        """建单返回缺少展示字段时，用 `query-order` 回读补齐（只读，不影响建单）。
+
+        不补的话前端订单卡只剩一个订单号 —— 实测踩过。
+        补失败就原样返回，卡片自动降级为只显示已有字段，**不编造任何值**。
+        """
+        if not isinstance(res, dict) or res.get("success") is False:
+            return res
+        data = res.get("data")
+        if not isinstance(data, dict):
+            return res
+        order_id = data.get("orderId") or data.get("orderNo") or ""
+        if not order_id:
+            return res
+        if all(data.get(f) for f in self._ORDER_CARD_FIELDS):
+            return res                                  # 字段齐全，省一次调用
+        try:
+            detail = await self.mcp.call("query-order", {"orderId": order_id},
+                                         use_cache=False)
+        except Exception:                               # noqa: BLE001
+            return res
+        d = (detail or {}).get("data") if isinstance(detail, dict) else None
+        if not isinstance(d, dict):
+            return res
+        for k, v in d.items():                          # 详情优先，建单结果兜底
+            if v not in (None, "", []) and not data.get(k):
+                data[k] = v
+        return res
+
+    @staticmethod
+    def _order_card(res: Any) -> dict | None:
+        """把 create-order 的返回整理成前端可渲染的订单确认卡片。
+
+        只到「待支付」：这里不涉及任何支付字段，也不做支付动作。
+        字段缺失一律留空，由前端决定要不要显示（**不编造**）。
+        """
+        if not isinstance(res, dict) or res.get("success") is False:
+            return None
+        d = res.get("data") or {}
+        if not isinstance(d, dict):
+            return None
+        order_id = d.get("orderId") or d.get("orderNo") or ""
+        if not order_id:
+            return None
+        return {
+            "type": "order",
+            "orderId": order_id,
+            "status": d.get("orderStatus") or "待支付",
+            "store": d.get("storeName") or "",
+            "address": d.get("storeAddress") or "",
+            "takeWay": d.get("takeWay") or "",
+            "total": d.get("totalAmount") or d.get("realTotalAmount") or "",
+            "discount": d.get("totalDiscountAmount") or "",
+            "expire": d.get("expirePayTime") or "",
+            "pickup": d.get("pickupCode") or "",
+        }
 
     @staticmethod
     def _fill_order_defaults(name: str, args: dict) -> dict:
@@ -226,6 +297,27 @@ class DialogEngine:
                         )
                 return "\n".join(lines)
         return None
+
+    @staticmethod
+    def _plain(text: str) -> str:
+        """把模型偶尔吐出的 Markdown 洗成纯文本。
+
+        聊天气泡用 `textContent` 渲染，Markdown 会原样显示成 `**加粗**`；
+        更糟的是模型会把 `![今日报告卡](file:///D:/.../report_xx.png)`
+        这种**本地绝对路径**直接贴进对话（已实测踩到）。
+        卡片本来就会由界面渲染，所以这里直接兜底清洗，不指望模型自觉。
+        """
+        if not text:
+            return text
+        t = _MD_IMAGE.sub("", text)                     # 图片整段丢掉（含路径）
+        t = _MD_LINK.sub(r"\1", t)                      # 链接只留文字
+        t = re.sub(r"\*\*(.+?)\*\*", r"\1", t)
+        t = re.sub(r"__(.+?)__", r"\1", t)
+        t = _MD_HEAD.sub("", t)
+        t = _MD_BULLET.sub("· ", t)
+        t = t.replace("**", "").replace("`", "")
+        t = re.sub(r"file:///\S+", "", t)               # 残留的本地路径
+        return re.sub(r"\n{3,}", "\n\n", t).strip()
 
     # ---------------------------------------------------------------- 主流程
 
@@ -299,6 +391,7 @@ class DialogEngine:
             except Exception:                               # noqa: BLE001
                 reply = ""
 
+        reply = self._plain(reply)
         if not reply:
             reply = "（我卡了一下）你想吃点啥？我帮你看。"
 

@@ -160,6 +160,8 @@ python scripts/debug_turn.py "就这个，多少钱？"   # 单轮调试，逐�
 | 菜单 | 门店 `1950814` → **122~124 项**（`data.meals` 是 `{code: {...}}` 字典，不是数组） |
 | 算价（单品） | 三件套 → `price: 3350` 分 = **¥33.5**，`productList[].subtotal` 同为 3350 分 |
 | 算价（两件） | 三件套 ¥33.5 + 薯饼 ¥8.0 → `price: 4150` 分 = **¥41.5**，逐项 `subtotal` 与 `productList` 严格吻合 |
+| **建单** | `create-order`（orderType=1 + `takeWayCode=eat-in`）**真实建单成功**，`query-order` 回读 `orderStatus="待支付"`、`status="10"`、`totalAmount="33.5"`、`takeWay="堂食"`、`expirePayTime` 为 15 分钟后；**全程未触发任何支付** |
+| **建单返回的坑** | `create-order` 的 `data` **只带 `orderId`**，门店/金额/取餐方式/支付时限都在 `query-order` 里 → 必须回读一次才能渲染完整订单卡 |
 | 取餐方式 | `takeWayList` → `eat-in`（堂食）/ `locker-in`（外带） |
 | 历史订单 | `order-list` → 返回真实历史订单，用于开场"被记住"（聚合在本地 SQLite 完成） |
 | 营养 | `list-nutrition-foods` → toon 紧凑格式，解析后热量与官方一致 |

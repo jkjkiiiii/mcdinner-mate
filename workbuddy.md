@@ -31,6 +31,9 @@
 | 设计 | **吉祥物与头图** | 设计「光团子」并产出 SVG 矢量稿与成品头图；修复光晕方形虚框、锯齿、半透明挖穿三个渲染缺陷 |
 | 文档 | 文档工程 | 将单份实施文档拆分为 12 份模块化文档，建立 `docs/dev` 与 `docs/design` 分层 |
 | 运营 | 传播策略 | 拉取官方实时榜单数据，测算进榜 Star 门槛与竞品格局 |
+| 交付 | **真实下单验证** | 走通 `calculate-price → create-order`，真实订单停在「待支付」，全程未触发支付 |
+| 交付 | **Demo 视频制作** | 用 Playwright 驱动真实前端跑完整剧本、逐幕截图，再合成 1920×1080 带旁白字幕的 MP4 |
+| 质量 | **界面缺陷修复** | 发现并修复：订单卡只剩订单号（`create-order` 不回展示字段）、模型把 `**加粗**` 与 `file:///D:/...` 本地路径吐进气泡 |
 
 ---
 
@@ -55,8 +58,10 @@
 | MCP 接入说明 | [`MCP_INTEGRATION.md`](MCP_INTEGRATION.md) |
 | 真实工具清单 | [`docs/MCP_TOOLS.md`](docs/MCP_TOOLS.md)（35 个工具名 + 入参 Schema） |
 | 视觉资产 | [`assets/banner-final-1280x640.png`](assets/banner-final-1280x640.png)、[`assets/mascot.svg`](assets/mascot.svg)、[`assets/report-card-sample.png`](assets/report-card-sample.png) |
-| 探测 / 验证脚本 | `scripts/mcp_probe.py`、`mcp_smoke.py`、`fetch_account_info.py`、`mcp_price_check.py`、`e2e_smoke.py`、`asr_check.py`、`debug_turn.py` |
-| 离线单测 | `tests/`（14 个用例，不联网、不需要 Token） |
+| **演示视频** | [`assets/demo-video.mp4`](assets/demo-video.mp4)（90s，1920×1080，真实界面 + 旁白字幕）、[`assets/demo-chat.gif`](assets/demo-chat.gif)、[`assets/demo-showcase.png`](assets/demo-showcase.png) |
+| 探测 / 验证脚本 | `scripts/mcp_probe.py`、`mcp_smoke.py`、`fetch_account_info.py`、`mcp_price_check.py`、`mcp_create_order.py`、`e2e_smoke.py`、`asr_check.py`、`debug_turn.py` |
+| 素材工具 | `tools/make_demo.py`（GIF/拼图）、`tools/record_demo.py`（真实浏览器录制）、`tools/make_demo_video.py`（视频合成） |
+| 离线单测 | `tests/`（29 个用例，不联网、不需要 Token） |
 
 ---
 
@@ -71,6 +76,8 @@ WorkBuddy 不只写代码，几个决定项目成败的判断也来自它：
 | **文件名纠错** | 指出自造的 `SUBMISSION.md` / `MCP_SETUP.md` 不符合官方要求，纠正为官方指定的 `CONTEST_DECLARATION.md` / `MCP_INTEGRATION.md`，并补出缺失的 `mcp-config.example.json`、`workbuddy.md` |
 | **算价链路提速** | e2e 实测发现算价要 5 轮 128 秒才完成，逐轮抓 `tool_calls` 定位到两处浪费，优化后 **3 轮 20 秒（提速 6.4 倍）**，详见 `docs/dev/10-risks.md` |
 | **依赖版本锁定** | 定位 `mcp 1.12` ↔ `pydantic<2.12` 冲突；定位 PyAV 19 移除 `metadata_errors` 导致 faster-whisper 报错 |
+| **不美化实测数据** | 演示视频里每幕标注真实推理耗时（20–134 秒/轮），加速剪辑但**不谎称秒回** |
+| **演示素材不造假** | 拒绝为好看而编数字：曾发现拼图把「单品 ¥33.5」与「两件合计 4150 分」并列写成"严格一致"，重新实测后全部改正 |
 
 ---
 

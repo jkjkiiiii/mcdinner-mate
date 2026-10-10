@@ -31,6 +31,22 @@
   </sub>
 </p>
 
+<p align="center">
+  <a href="assets/demo-video.mp4">
+    <img src="assets/demo-video-poster.png" alt="▶ 观看 90 秒演示视频" width="82%">
+  </a>
+</p>
+
+<p align="center">
+  <b>▶ <a href="assets/demo-video.mp4">观看 90 秒演示视频</a></b>（1920×1080 MP4，带旁白字幕）<br>
+  <sub>
+    全片是真实界面截图，不是概念图：真实本地大模型推理、真实 MCP 调用、真实「待支付」订单
+  </sub>
+</p>
+
+> 📌 **视频里的推理耗时做了加速处理**，每幕字幕都标注了真实耗时（23–70 秒/轮）。
+> 这是本地 27B 模型跑满工具往返的真实速度，我们没有把它伪装成秒回。
+
 ---
 
 ## 它解决什么问题
@@ -160,9 +176,14 @@ cp .env.example .env     # 填入你的 MCP_TOKEN
 ### 3. 验证 MCP 连通
 
 ```bash
-python scripts/mcp_probe.py      # 输出生效地址、协议版本与真实工具清单
-python scripts/mcp_smoke.py      # 只读冒烟测试，确认核心工具能取到数据
+python scripts/mcp_probe.py        # 输出生效地址、协议版本与真实工具清单
+python scripts/mcp_smoke.py        # 只读冒烟测试，确认核心工具能取到数据
+python scripts/mcp_price_check.py  # 只读：菜单取码 → calculate-price，核对「分/元」
+python scripts/mcp_create_order.py # 演练到算价为止；加 --yes 才真实建单（只到待支付）
 ```
+
+> ⚠️ `mcp_create_order.py --yes` 会在真实账号创建一笔真实订单（**仅到「待支付」，不触发任何支付**，
+> 15 分钟未付自动失效）。不加 `--yes` 时它只跑到算价就停。
 
 ### 4. 启动
 
@@ -204,6 +225,19 @@ skill/
 > 这也顺带说明了一件事：**这顿饭的陪伴能力本身不依赖语音**。
 > 语音是加分项，不是前提。
 
+### 用法三：复现上面的演示视频
+
+视频不是剪出来的概念片，是脚本跑出来的 —— 两步可复现：
+
+```bash
+uv pip install -r requirements-dev.txt     # Playwright + Pillow（ffmpeg 需另行安装）
+python tools/record_demo.py                # 1) 驱动真实前端走完整剧本，逐幕截图
+python tools/make_demo_video.py            # 2) 合成 1080p MP4（edge-tts 旁白 + 字幕）
+```
+
+> ⚠️ 第 1 步会真实走一遍对话，**包含一次真实建单（只到「待支付」）**。
+> 只想看视频不想下单，跳过这两步直接看 `assets/demo-video.mp4` 即可。
+
 ## 为什么必须用 MCP
 
 没有 MCP，这就是个普通的聊天机器人。是 MCP 让它变成"饭搭子"：
@@ -242,7 +276,8 @@ mcdinner-mate/
 ├── mcp-config.example.json    # 脱敏配置示例
 ├── workbuddy.md               # WorkBuddy 开发上下文
 ├── FEASIBILITY.md             # 开工前的可行性评估与 GO / NO-GO 复审
-├── requirements.txt
+├── requirements.txt           # 运行依赖
+├── requirements-dev.txt       # 演示/录制工具依赖（Playwright、Pillow）
 ├── run_cli.py                 # 纯文本模式跑通全流程（不开语音）
 ├── server/                    # 后端
 │   ├── mcp_client.py          #   MCP 封装：缓存 / 单位归一化 / toon 解析
@@ -251,15 +286,18 @@ mcdinner-mate/
 │   ├── memory/                #   SQLite 会话与画像聚合
 │   └── report/                #   报告卡渲染
 ├── web/                       # 单页前端：按住说话 / 开口打断 / 卡片展示
-├── scripts/                   # 探测、冒烟与端到端验证脚本
-├── tests/                     # 离线单测（不联网、不需 Token）
+├── scripts/                   # 探测、冒烟、算价与真实建单验证脚本
+├── tests/                     # 离线单测（29 个用例，不联网、不需 Token）
 ├── docs/                      # 文档
 │   ├── MCP_TOOLS.md           #   35 个工具名 + 入参 Schema（实测生成）
 │   ├── SUBMIT_ISSUE.md        #   报名文案与提交核对清单
 │   └── dev/                   #   12 份开发过程文档（含风险登记册、传播策略）
 ├── skill/                     # 纯文本 Skill（可在 AI 客户端直接安装）
-├── tools/                     # 素材生成：演示 GIF / 一图流 / Banner
-└── assets/                    # 头图、吉祥物、演示动图与报告卡样例
+├── tools/                     # 素材工具：Banner / GIF / 一图流 / 视频录制与合成
+│   ├── make_demo.py           #   生成演示 GIF 与产品一图流
+│   ├── record_demo.py         #   Playwright 驱动真实前端逐幕截图
+│   └── make_demo_video.py     #   合成为 1080p MP4（edge-tts 旁白 + 字幕）
+└── assets/                    # 头图、吉祥物、演示视频/GIF 与报告卡样例
 ```
 
 ## English Overview

@@ -1,0 +1,16 @@
+# ============================================================
+# 麦麦陪餐搭子 —— 开发/演示工具依赖（运行产品本身不需要）
+# 安装：uv pip install -r requirements-dev.txt
+# 说明：这些包只服务于「录制 Demo 视频」与「截图」等开发环节，
+#       不参与运行时的 ASR / 对话 / MCP / TTS 链路。
+# ============================================================
+
+# 驱动真实浏览器走完整剧本并截图（tools/record_demo.py）
+playwright>=1.40
+
+# 图片合成（Demo 视频画布，tools/make_demo_video.py）
+pillow>=10.0
+
+# 注意：ffmpeg 需自行安装并加入 PATH（视频编码用），
+#       它不是 Python 包，无法通过本文件安装。
+#       Windows: winget install Gyan.FFmpeg   或   https://ffmpeg.org/download.html

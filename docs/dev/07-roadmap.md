@@ -2,7 +2,7 @@
 
 > 赛事截止：**2026-10-25 23:59**　|　定榜：2026-10-26 00:00　|　评估日：2026-10-10（剩 15 天）
 
-## 7.0 进度快照（2026-10-10 21:00）
+## 7.0 进度快照（2026-10-10 22:00）
 
 | Phase | 状态 | 说明 |
 | --- | --- | --- |
@@ -10,9 +10,9 @@
 | 1 MCP 打通 | ✅ | 地址 `https://mcp.mcd.cn`、协议 2025-06-18、35 工具；`server/mcp_client.py` + 离线单测 |
 | 2 对话引擎 | ✅ | persona(两套)/状态机/engine；本地 Qwen3.8-27B-VL tool calling 实测可用；**算价链路提速 6.4×** |
 | 3 语音链路 | ✅ | **ASR 已跑通**（faster-whisper large-v3 / 5090D / 4.7s 音频识别准确）；TTS ✅；前端单页 ✅ |
-| 4 下单与报告 | 🟡 | 报告卡 ✅；`query-meals→calculate-price` 全链路实测通过（三件套 ¥33.5 = `price: 3350` 分）；**真实下单待人工确认** |
-| 5 打磨与交付 | ✅ | 参赛五件套 ✅、**报名 Issue [#356](https://github.com/M-China/mcd-developer-innovation-challenge/issues/356) 已提交**、开发文档 12 份已入库；Demo 视频待录 |
-| 传播 | 🔴 | **0 Star**。实测门槛已从 1★ 涨至 3★（同日 5 小时），推广尚未启动 |
+| 4 下单与报告 | ✅ | 报告卡 ✅；算价链路实测通过（三件套 ¥33.5 = `price: 3350` 分）；**真实建单已跑通，停在「待支付」**；订单确认卡片 ✅ |
+| 5 打磨与交付 | ✅ | 参赛五件套 ✅、**报名 Issue [#356](https://github.com/M-China/mcd-developer-innovation-challenge/issues/356) 已提交**、开发文档 13 份已入库；**Demo 视频已录制合成** |
+| 传播 | 🟡 | 已进榜（第 50 名 / 5★ → 实时 7★）。实测门槛同日 1★→3★，**推广需持续推进** |
 
 **关键实现教训**（已沉淀，勿再踩）：
 - 35 个 MCP 工具全量喂给 27B 模型 → `finish_reason=length` 空回复 → 工具白名单裁到 15 个
@@ -68,19 +68,25 @@
 
 ## 7.5 Phase 4 — 下单与报告（Day 12-15）
 
-- [ ] 下单封装：入参校验（门店/商品/modification/预约时间）→ `calculate-price` → `create-order` → 只到待支付
-- [ ] 前端订单确认卡片（商品/金额/支付链接/15 分钟倒计时/引导）
-- [ ] `report/card.py`：HTML 模板 + Pillow 渲染 1080×1080 分享卡
+- [x] 下单封装：入参校验（门店/商品/modification/预约时间）→ `calculate-price` → `create-order` → 只到待支付
+- [x] 前端订单确认卡片（门店/取餐方式/金额/支付时限/订单号 + 「本工具不代付」）
+      —— **刻意不做**支付链接与倒计时：不引导、不代付
+- [x] `report/card.py`：Pillow 渲染 1080×1080 分享卡
 
-- **验收**：真实账号完成一次到店取"待支付"订单（≤30 元，机主自行决定是否支付）
+- **验收**：真实账号完成一次到店取"待支付"订单（¥33.5，**未支付**，15 分钟后自动失效）✅
+
+> ⚠️ **订单卡字段坑**：`create-order` 的返回**实测只带 `orderId`**，门店/金额/取餐方式/支付时限
+> 全在 `query-order` 里。不补一次回读，前端订单卡就只剩一个订单号（已踩）。
+> 补丁：`DialogEngine._enrich_order()` —— 只在缺字段时回读，且**建单结果优先、绝不覆盖**。
 
 ## 7.6 Phase 5 — 打磨与交付（Day 15，与传播并行）
 
-- [ ] `README.md`（参赛四要素：项目介绍/安装方法/使用示例/目标用户）+ 架构图 + Demo 视频
-- [ ] `MCP_INTEGRATION.md`、`mcp-config.example.json`、`CONTEST_DECLARATION.md`、`workbuddy.md`
+- [x] `README.md`（参赛四要素：项目介绍/安装方法/使用示例/目标用户）+ 架构图 + Demo 视频
+- [x] `MCP_INTEGRATION.md`、`mcp-config.example.json`、`CONTEST_DECLARATION.md`、`workbuddy.md`
 - [ ] 限流压测：连续对话 5 分钟不触发 429
-- [ ] 录 Demo 视频（≤3min）
-- [ ] **提交报名 Issue（≤1000 字，不带图片）**
+- [x] 录 Demo 视频（90s，1920×1080，真实界面截图 + 旁白字幕）
+      —— `tools/record_demo.py` 采集 → `tools/make_demo_video.py` 合成
+- [x] **提交报名 Issue（#356，不带图片）**
 
 ## 7.7 排期（两套）
 

@@ -24,17 +24,35 @@ function bubble(cls, text) {
 
 function sys(text) { bubble('sys', text); }
 
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function showCard(c) {
   const d = document.createElement('div');
   d.className = 'card';
   if (c.type === 'report') {
     d.innerHTML = '<b>今日报告已生成</b><br>' +
-      (c.items || []).map(i => '· ' + i).join('<br>') +
-      (c.kcal ? `<br>热量 ${c.kcal} kcal` : '') +
-      (c.mood ? `<br>心情 ${c.mood}` : '') +
-      `<br><a href="/audio/${encodeURIComponent(c.image.split(/[\\/]/).pop())}" target="_blank">查看大图</a>`;
+      (c.items || []).map(i => '· ' + esc(i)).join('<br>') +
+      (c.kcal ? `<br>热量 ${esc(c.kcal)} kcal` : '') +
+      (c.mood ? `<br>心情 ${esc(c.mood)}` : '') +
+      `<br><a href="/audio/${encodeURIComponent(String(c.image).split(/[\\/]/).pop())}" target="_blank">查看大图</a>`;
+  } else if (c.type === 'order') {
+    const rows = [];
+    if (c.store) rows.push(`<div class="o-row"><span>门店</span><i>${esc(c.store)}${c.address ? '（' + esc(c.address) + '）' : ''}</i></div>`);
+    if (c.takeWay) rows.push(`<div class="o-row"><span>取餐</span><i>${esc(c.takeWay)}</i></div>`);
+    if (c.total) rows.push(`<div class="o-row"><span>金额</span><i class="o-total">¥${esc(c.total)}</i></div>`);
+    if (c.discount && String(c.discount) !== '0') rows.push(`<div class="o-row"><span>优惠</span><i>-¥${esc(c.discount)}</i></div>`);
+    if (c.expire) rows.push(`<div class="o-row"><span>支付时限</span><i>${esc(c.expire)}</i></div>`);
+    d.innerHTML =
+      `<div class="o-head"><b>订单已创建</b><span class="o-badge">${esc(c.status || '待支付')}</span></div>` +
+      rows.join('') +
+      `<div class="o-foot">订单号 ${esc(c.orderId)}<br>` +
+      `付款请前往麦当劳 App / 小程序 · 本工具不代付</div>`;
   } else {
-    d.innerHTML = '<b>卡片</b><br>' + JSON.stringify(c);
+    d.innerHTML = '<b>卡片</b><br>' + esc(JSON.stringify(c));
   }
   log.appendChild(d);
   log.scrollTop = log.scrollHeight;
