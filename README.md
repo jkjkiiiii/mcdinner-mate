@@ -289,6 +289,7 @@ mcdinner-mate/
 ├── scripts/                   # 探测、冒烟、算价与真实建单验证脚本
 ├── tests/                     # 离线单测（29 个用例，不联网、不需 Token）
 ├── docs/                      # 文档
+│   ├── PROMO_BRIEF.md         #   对外宣传信息总纲（定位 / 受众 / 宣传片素材包）
 │   ├── MCP_TOOLS.md           #   35 个工具名 + 入参 Schema（实测生成）
 │   ├── SUBMIT_ISSUE.md        #   报名文案与提交核对清单
 │   └── dev/                   #   12 份开发过程文档（含风险登记册、传播策略）
