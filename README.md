@@ -173,7 +173,11 @@ TTS 用 `edge-tts`，无需任何 Key。
 | `MCP_SERVER_URL` | | 默认 `https://mcp.mcd.cn` |
 | `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | ✅ | 支持 tool calling 的大模型 |
 | `TEST_PHONE` | ✅ | 麦当劳账号手机号 |
-| `DEFAULT_STORE_ID` | ✅ | 常用门店编码 |
+| `DEFAULT_STORE_ID` | ✅ | 常用门店编码（会注入系统提示，模型不再重复查店） |
+| `ADDRESS_ID` | | 外送收货地址 ID（麦乐送场景用） |
+| `ASR_MODEL` / `ASR_DEVICE` / `ASR_COMPUTE_TYPE` | | 语音识别，填法见上节；不填则语音功能不可用 |
+| `TTS_VOICE` | | edge-tts 音色，默认 `zh-CN-XiaoxiaoNeural` |
+| `LAT` / `LON` | | 附近门店检索坐标 |
 | `PORTRAIT_MODE` | | `gentle`（默认）/ `sarcastic` |
 
 > MCP 限流 600 次/分钟/Token，静态数据（菜单、营养、活动）本地缓存 30 分钟。
@@ -187,11 +191,23 @@ mcdinner-mate/
 ├── MCP_INTEGRATION.md         # MCP 接入说明
 ├── mcp-config.example.json    # 脱敏配置示例
 ├── workbuddy.md               # WorkBuddy 开发上下文
-├── server/                    # 后端：MCP 客户端 / 对话引擎 / 语音 / 报告
-├── web/                       # 单页前端
-├── scripts/                   # MCP 探测与冒烟测试
-├── assets/                    # 头图与吉祥物
-└── docs/                      # 真实工具清单与接口样例
+├── FEASIBILITY.md             # 开工前的可行性评估与 GO / NO-GO 复审
+├── requirements.txt
+├── run_cli.py                 # 纯文本模式跑通全流程（不开语音）
+├── server/                    # 后端
+│   ├── mcp_client.py          #   MCP 封装：缓存 / 单位归一化 / toon 解析
+│   ├── dialog/                #   人设 · 状态机 · 对话引擎
+│   ├── voice/                 #   本地 ASR（faster-whisper）+ edge-tts
+│   ├── memory/                #   SQLite 会话与画像聚合
+│   └── report/                #   报告卡渲染
+├── web/                       # 单页前端：按住说话 / 开口打断 / 卡片展示
+├── scripts/                   # 探测、冒烟与端到端验证脚本
+├── tests/                     # 离线单测（不联网、不需 Token）
+├── docs/                      # 文档
+│   ├── MCP_TOOLS.md           #   35 个工具名 + 入参 Schema（实测生成）
+│   ├── SUBMIT_ISSUE.md        #   报名文案与提交核对清单
+│   └── dev/                   #   12 份开发过程文档（含风险登记册、传播策略）
+└── assets/                    # 头图、吉祥物与报告卡样例
 ```
 
 ## 参与赛事
