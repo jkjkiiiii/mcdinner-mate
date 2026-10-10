@@ -5,6 +5,9 @@
 
 ## 5.1 官方真实工具清单
 
+> 以下按业务域归类便于阅读；**完整 35 个工具的入参 Schema 见 [`../MCP_TOOLS.md`](../MCP_TOOLS.md)**
+> （由 `scripts/mcp_probe.py` 实测生成，非手工整理，因此不会与官方漂移）。
+
 ### 地址与门店
 
 | 工具名 | 说明 |
@@ -65,7 +68,7 @@
 | 领券 | **`available-coupons`** + **`auto-bind-coupons`** | "有啥券" / 下单前自动 | 领成功要口头播报 |
 | 门店可用券 | **`query-store-coupons`** | 下单前精算 | 比 `available-coupons` 更贴合当前门店 |
 | 我的券 | **`query-my-coupons`** | "我有哪些券" | 原文档写成 `my-coupons`，**名称错误** |
-| 下单（到店取） | `query-nearby-stores` → `query-meals` → `query-meal-detail` → `query-store-coupons` → `calculate-price` → `create-order` | "就这个" / "帮我下单" | 只到待支付 |
+| 下单（到店取） | `query-meals` → `calculate-price` → `create-order` | "就这个" / "帮我下单" | 只到待支付。**`create-order` 必带 `takeWayCode`**（取自 `calculate-price` 返回的 `takeWayList`）；`.env` 已配门店时**无需**再 `query-nearby-stores`（实测省 1 轮，见 R23） |
 | 下单（麦乐送） | `delivery-query-addresses` → `delivery-query-stores` → ... → `create-order` | "送到公司" | 传 `addressId` |
 | 查积分/抽奖 | **`query-my-account`** / `query-lottery-info` / `draw-lottery` | "我多少积分" | "积分规划师"彩蛋 |
 | 时间基准 | **`now-time-info`** | 开场自动调用 | ⭐ 让 LLM 正确理解"今天/上周" |
@@ -78,13 +81,26 @@
 | **营养数据是 toon 紧凑格式** | 非标准 JSON，为省 Token 设计 | 专写解析器 + 单测；**解析失败时必须拒绝回答，不允许 LLM 编数字** |
 | `order-list` 非商城订单 | 商城订单需 `mall-order-list` | 画像聚合时区分来源 |
 | 订单 15 分钟支付窗口 | `create-order` 返回链接后超时失效 | 卡片上倒计时提示 |
+| **`takeWayCode` 是必传项** | 到店场景 `create-order` 必带，取值只能来自 `calculate-price` 的 `takeWayList[].code`（`eat-in`/`locker-in`）；外送场景不得传 | 提示词写明取值来源 + 引擎兜底注入（默认 `eat-in`） |
+| **`query-meals` 的 `data.meals` 是字典** | 形如 `{code: {name, currentPrice, ...}}`，**不是数组**（用下标会 KeyError） | 按 key 取值；大表先瘦身再回灌模型 |
+| 大工具结果会被截断 | `query-meals` 原返 7000+ 字符，超 6000 上限后成为半截 JSON，模型读不懂 | 在 `engine._slim_result()` 里先压成紧凑文本 |
 
-## 5.4 Phase 1 待回写的实测结果
+## 5.4 ✅ 实测结果回写（2026-10-10 完成）
 
-| 项 | 实测值 | 日期 |
-| --- | --- | --- |
-| 生效的 MCP Server URL | 待填 | |
-| 握手成功的 `mcp` SDK 版本 / 协议版本 | 待填 | |
-| `list_tools()` 返回的工具总数 | 待填（文档列 ~30） | |
-| 与本文档清单的差异 | 待填 | |
-| 各工具入参/出参样例 | 待填（写入 MCP_INTEGRATION.md） | |
+| 项 | 实测值 |
+| --- | --- |
+| **生效的 MCP Server URL** | **`https://mcp.mcd.cn`**（仓库示例中的 `/mcp-servers/mcd-mcp` 实测未通过） |
+| **握手成功的 SDK / 协议版本** | `mcp==1.12.0`（配 `pydantic==2.11.7`）/ 协议 **`2025-06-18`** |
+| **`list_tools()` 返回工具总数** | **35 个**（§5.1 是按业务域归类，非逐条罗列） |
+| 与本文档清单的差异 | 实测另有 `mall-order-list`、`mall-order-detail`、`query-partystore-*` 等；**完整清单见 [`../MCP_TOOLS.md`](../MCP_TOOLS.md)** |
+| 各工具入参 / 出参样例 | Schema 见 [`../MCP_TOOLS.md`](../MCP_TOOLS.md)；接口原始返回样例见 `docs/samples/`（已 gitignore，含账号数据） |
+| 对话引擎实际暴露的工具数 | **15 个**（`DIALOG_TOOLS`），原因见 [`../../MCP_INTEGRATION.md`](../../MCP_INTEGRATION.md) §2 |
+
+### 实测补充的关键字段（文档里没有、踩过才知道）
+
+| 字段 | 说明 |
+| --- | --- |
+| **`calculate-price` → `takeWayList[]`** | 返回 `eat-in`（堂食）/ `locker-in`（外带），是下一步 `create-order` 的 `takeWayCode` **唯一合法取值来源** |
+| **`create-order` → `takeWayCode`** | 到店场景（`orderType=1`）**必传**，漏传直接建单失败；外送场景（`orderType=2`）**不得传**，传了报错 |
+| `query-meals` → `data.meals` | 是 **`{code: {name, currentPrice, originalPrice}}` 字典**，不是数组（`meals[0]` 会 KeyError）；`data.categories[].meals[]` 只有 `{code, tags}` |
+| `calculate-price` 嵌套金额 | `productList[].subtotal` 同样是**分**，只转顶层会漏 |
