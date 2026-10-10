@@ -19,10 +19,14 @@ load_dotenv(ROOT / ".env")
 URL = os.getenv("MCP_SERVER_URL", "https://mcp.mcd.cn")
 TOKEN = os.getenv("MCP_TOKEN")
 
+# 门店搜索用中性关键词，避免把开发者的常驻位置写进公开仓库
+NEARBY_CITY = os.getenv("NEARBY_CITY", "北京")
+NEARBY_KEYWORD = os.getenv("NEARBY_KEYWORD", "国贸")
+
 CALLS = [
     ("now-time-info", {}, 400),
     ("query-nearby-stores",
-     {"beType": 1, "searchType": 2, "city": "北京", "keyword": "首都医科大学"}, 900),
+     {"beType": 1, "searchType": 2, "city": NEARBY_CITY, "keyword": NEARBY_KEYWORD}, 900),
     ("order-list", {}, 1200),
     ("delivery-query-addresses", {}, 700),
     ("list-nutrition-foods", {}, 600),

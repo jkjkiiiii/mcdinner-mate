@@ -97,10 +97,25 @@ class DialogEngine:
             return "（历史订单暂时取不到，别提这件事）"
 
     def _system(self, state, profile_text: str) -> str:
+        env_lines = []
+        if self.cfg.default_store_id:
+            env_lines.append(
+                f"- 默认门店 storeCode={self.cfg.default_store_id}，用户平时就去这家。"
+                "算价下单直接用，**不要再调 query-nearby-stores**"
+                "（只有用户明确说要换一家时才查）"
+            )
+        if self.cfg.address_id:
+            env_lines.append(
+                f"- 默认收货地址 addressId={self.cfg.address_id}（用户要点外送时用）"
+            )
+        env = ""
+        if env_lines:
+            env = "\n## 当前环境（已配好，直接用，别重复查）\n" + "\n".join(env_lines) + "\n"
         return (
             get_persona(state.persona, self.cfg)
             + f"\n## 当前阶段指引\n{stage_hint(state.stage)}\n"
             + f"\n## 你对这位用户的记忆\n{profile_text}\n"
+            + env
             + "\n（以上记忆来自真实历史订单，可以自然地提起，但别一开口就报数据。）"
         )
 
@@ -154,13 +169,15 @@ class DialogEngine:
         use_cache = name in self.cfg.cacheable_tools
         try:
             res = await self.mcp.call(name, args, use_cache=use_cache)
-            if isinstance(res, (dict, list)):
-                text = json.dumps(res, ensure_ascii=False)
-            else:
-                text = str(res)
+            text = self._slim_result(name, res)
+            if text is None:
+                if isinstance(res, (dict, list)):
+                    text = json.dumps(res, ensure_ascii=False)
+                else:
+                    text = str(res)
             # 上下文可能很长（菜单/营养全表），截断保护
-            if len(text) > 6000:
-                text = text[:6000] + " …(已截断)"
+            if len(text) > self.MAX_TOOL_CHARS:
+                text = text[: self.MAX_TOOL_CHARS] + " …(已截断)"
             return {"ok": True, "data": text}, None
         except Exception as e:                              # noqa: BLE001
             self.sm.advance(state, name)
@@ -183,6 +200,32 @@ class DialogEngine:
             a.setdefault("beType", 1)
             a.setdefault("needTableware", False)
         return a
+
+    # 单次回灌给模型的工具结果上限。超了就截成半截 JSON，模型反而读不懂，
+    # 所以体量大的工具必须先在下面做结构化瘦身。
+    MAX_TOOL_CHARS = 6000
+
+    @staticmethod
+    def _slim_result(name: str, res: Any) -> str | None:
+        """把体积大、噪音多的工具结果压成紧凑文本；无需瘦身时返回 None。
+
+        `query-meals` 原始返回 7000+ 字符，每项还带图片 URL，必然被截断成
+        半截 JSON。实测模型因此找不到商品码，只能逐个 query-meal-detail 去
+        翻（一次 7000 字符，连翻 4 次），白白多烧 3~4 轮、每轮 20~35 秒。
+        压成 `code|名称|现价|原价` 之后，124 项也能一次看全。
+        """
+        if name == "query-meals" and isinstance(res, dict):
+            meals = (res.get("data") or {}).get("meals") or {}
+            if isinstance(meals, dict) and meals:
+                lines = ["code|名称|现价|原价"]
+                for code, m in meals.items():
+                    if isinstance(m, dict):
+                        lines.append(
+                            f"{code}|{m.get('name')}|"
+                            f"{m.get('currentPrice')}|{m.get('originalPrice')}"
+                        )
+                return "\n".join(lines)
+        return None
 
     # ---------------------------------------------------------------- 主流程
 

@@ -21,6 +21,9 @@ SAMPLES.mkdir(parents=True, exist_ok=True)
 
 URL = os.getenv("MCP_SERVER_URL")
 TOKEN = os.getenv("MCP_TOKEN")
+# 门店搜索用中性关键词，避免把开发者的常驻位置写进公开仓库
+NEARBY_CITY = os.getenv("NEARBY_CITY", "北京")
+NEARBY_KEYWORD = os.getenv("NEARBY_KEYWORD", "国贸")
 
 
 def parse_json_obj(text: str):
@@ -64,8 +67,8 @@ async def main():
 
             print("=== 附近门店（到店自提）===")
             d = await call(s, "query-nearby-stores",
-                           {"beType": 1, "searchType": 2, "city": "北京",
-                            "keyword": "首都医科大学"})
+                           {"beType": 1, "searchType": 2, "city": NEARBY_CITY,
+                            "keyword": NEARBY_KEYWORD})
             stores = (d or {}).get("data") or []
             for st in stores[:6]:
                 print(f"  {st.get('storeCode')} | {st.get('storeName')} | "

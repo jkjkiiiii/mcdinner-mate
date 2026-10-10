@@ -127,6 +127,22 @@ python -m server.main            # 打开 http://localhost:8000
 > 默认使用本地大模型（vLLM / OpenAI 兼容接口，如 `http://localhost:8001/v1`）。
 > 没有本地模型也没关系，把 `.env` 里的 `LLM_BASE_URL` / `LLM_API_KEY` 换成任意支持 tool calling 的云端服务即可。
 
+### 5. 语音（可选）
+
+不装也能跑，页面会自动退化成文字对话。
+
+```bash
+uv pip install faster-whisper      # ASR，需要 NVIDIA GPU
+```
+
+`.env` 里的 `ASR_MODEL` 有两种填法：
+
+- 填模型名（如 `large-v3`）—— 首次启动自动下载约 3GB；国内建议先设 `HF_ENDPOINT=https://hf-mirror.com`
+- 填本地目录（如 `D:/Models/faster-whisper-large-v3`）—— 免下载，最稳。目录里放这 5 个文件即可：
+  `config.json`、`model.bin`、`tokenizer.json`、`vocabulary.json`、`preprocessor_config.json`
+
+TTS 用 `edge-tts`，无需任何 Key。
+
 ## 为什么必须用 MCP
 
 没有 MCP，这就是个普通的聊天机器人。是 MCP 让它变成"饭搭子"：
