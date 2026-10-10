@@ -1,0 +1,34 @@
+# ============================================================
+# 麦麦陪餐搭子 McDinnerMate
+# 安装：uv pip install -r requirements.txt
+# ============================================================
+
+# --- Web 框架 ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# --- MCP 客户端 ---
+# 官方 MCP 仅支持协议 <= 2025-06-18，必须锁 1.12.x
+mcp==1.12.0
+# mcp 1.12 依赖 pydantic._internal._typing_extra.eval_type_backport，
+# pydantic >= 2.12 已移除该符号，会导致 ImportError。务必锁 2.11.x。
+pydantic==2.11.7
+
+# --- HTTP / 配置 ---
+httpx>=0.27
+python-dotenv>=1.0
+
+# --- 大模型客户端（兼容 OpenAI 协议，可接本地 vLLM）---
+openai>=1.40
+
+# --- 语音 ---
+edge-tts>=6.1
+# ASR 使用本地 faster-whisper（需 NVIDIA GPU），单独安装：
+#   uv pip install faster-whisper
+# 中国区下载模型可设：HF_ENDPOINT=https://hf-mirror.com
+
+# --- 报告卡渲染 ---
+pillow>=10.0
+
+# --- 测试 ---
+pytest>=8.0
