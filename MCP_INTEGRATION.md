@@ -158,7 +158,8 @@ python scripts/debug_turn.py "就这个，多少钱？"   # 单轮调试，逐�
 | --- | --- |
 | 工具数 | `list_tools()` → **35 个** |
 | 菜单 | 门店 `1950814` → **122~124 项**（`data.meals` 是 `{code: {...}}` 字典，不是数组） |
-| 算价 | 三件套 ¥33.5 + 薯饼 ¥8.0 = `price: 4150` 分 = **¥41.5**，逐项 `subtotal` 与 `productList` 严格吻合 |
+| 算价（单品） | 三件套 → `price: 3350` 分 = **¥33.5**，`productList[].subtotal` 同为 3350 分 |
+| 算价（两件） | 三件套 ¥33.5 + 薯饼 ¥8.0 → `price: 4150` 分 = **¥41.5**，逐项 `subtotal` 与 `productList` 严格吻合 |
 | 取餐方式 | `takeWayList` → `eat-in`（堂食）/ `locker-in`（外带） |
 | 历史订单 | `order-list` → 返回真实历史订单，用于开场"被记住"（聚合在本地 SQLite 完成） |
 | 营养 | `list-nutrition-foods` → toon 紧凑格式，解析后热量与官方一致 |

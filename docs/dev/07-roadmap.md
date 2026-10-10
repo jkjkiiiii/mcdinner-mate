@@ -10,7 +10,7 @@
 | 1 MCP 打通 | ✅ | 地址 `https://mcp.mcd.cn`、协议 2025-06-18、35 工具；`server/mcp_client.py` + 离线单测 |
 | 2 对话引擎 | ✅ | persona(两套)/状态机/engine；本地 Qwen3.8-27B-VL tool calling 实测可用；**算价链路提速 6.4×** |
 | 3 语音链路 | ✅ | **ASR 已跑通**（faster-whisper large-v3 / 5090D / 4.7s 音频识别准确）；TTS ✅；前端单页 ✅ |
-| 4 下单与报告 | 🟡 | 报告卡 ✅；`query-meals→calculate-price` 全链路实测通过（¥33.5 与接口一致）；**真实下单待人工确认** |
+| 4 下单与报告 | 🟡 | 报告卡 ✅；`query-meals→calculate-price` 全链路实测通过（三件套 ¥33.5 = `price: 3350` 分）；**真实下单待人工确认** |
 | 5 打磨与交付 | ✅ | 参赛五件套 ✅、**报名 Issue [#356](https://github.com/M-China/mcd-developer-innovation-challenge/issues/356) 已提交**、开发文档 12 份已入库；Demo 视频待录 |
 | 传播 | 🔴 | **0 Star**。实测门槛已从 1★ 涨至 3★（同日 5 小时），推广尚未启动 |
 
