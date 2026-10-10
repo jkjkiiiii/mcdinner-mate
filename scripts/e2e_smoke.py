@@ -32,7 +32,7 @@ async def main():
     print("=" * 62)
 
     eng = DialogEngine(settings, mcp, DB(settings.db_path))
-    sid = "e2e"
+    sid = f"e2e-{int(time.time())}"   # 每次跑都用新会话，免得上一次的失败记录污染上下文
     for i, t in enumerate(TURNS, 1):
         print(f"\n[{i}] 👤 {t}")
         t0 = time.time()

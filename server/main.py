@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -22,19 +23,21 @@ WEB = ROOT / "web"
 AUDIO_DIR = ROOT / "data" / "audio"
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
-app = FastAPI(title="McDinnerMate", version="0.1.0")
-app.mount("/audio", StaticFiles(directory=str(AUDIO_DIR)), name="audio")
-app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
-
 # 全局单例（MCP 无状态、引擎带会话状态）
 mcp = MCPClient(settings)
 db = DB(settings.db_path)
 engine = DialogEngine(settings, mcp, db)
 
 
-@app.on_event("startup")
-async def _startup():
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
     await mcp.list_tools()          # 启动时把工具清单抓好
+    yield
+
+
+app = FastAPI(title="McDinnerMate", version="0.1.0", lifespan=lifespan)
+app.mount("/audio", StaticFiles(directory=str(AUDIO_DIR)), name="audio")
+app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
 
 
 @app.get("/")
