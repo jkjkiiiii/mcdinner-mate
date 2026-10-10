@@ -150,6 +150,7 @@ class DialogEngine:
             return {"summary": await self._profile_text()}, None
 
         # 其余交给 MCP
+        args = self._fill_order_defaults(name, args)
         use_cache = name in self.cfg.cacheable_tools
         try:
             res = await self.mcp.call(name, args, use_cache=use_cache)
@@ -165,6 +166,23 @@ class DialogEngine:
             self.sm.advance(state, name)
             return {"ok": False, "error": str(e)[:200],
                     "fallback": self.sm.fallback(name)}, None
+
+    @staticmethod
+    def _fill_order_defaults(name: str, args: dict) -> dict:
+        """补齐 MCP 写接口的必传字段。
+
+    `create-order` 在到店场景（orderType=1）**必须**带 `takeWayCode`，
+    取值只能是 calculate-price 返回的 takeWayList[].code（eat-in / locker-in）。
+    模型偶尔会漏，这里兜底成「堂食」，避免整单白跑。
+        """
+        a = dict(args or {})
+        if name == "create-order":
+            order_type = int(a.get("orderType", 1) or 1)
+            if order_type == 1 and not a.get("takeWayCode"):
+                a["takeWayCode"] = "eat-in"
+            a.setdefault("beType", 1)
+            a.setdefault("needTableware", False)
+        return a
 
     # ---------------------------------------------------------------- 主流程
 

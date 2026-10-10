@@ -34,6 +34,25 @@ def fen_to_yuan(v: Any) -> float | None:
         return None
 
 
+_AMOUNT_KEY = re.compile(r"(amount|price|fee|total|subtotal)", re.I)
+
+
+def add_yuan_fields(d: dict) -> dict:
+    """就地为金额字段追加 `*_yuan` 副本，**原字段保持不变**。
+
+    接口里所有金额都是「分」，直接展示会差 100 倍（¥33.5 显示成 3350）。
+    保留原字段是为了不破坏与官方 schema 的一致性；上层一律读 `*_yuan`。
+    """
+    for k, v in list(d.items()):
+        if k.endswith("_yuan"):
+            continue
+        if isinstance(v, (int, float, str)) and not isinstance(v, bool) and _AMOUNT_KEY.search(k):
+            y = fen_to_yuan(v)
+            if y is not None:
+                d[f"{k}_yuan"] = y
+    return d
+
+
 # ---------------------------------------------------------------- toon 解析
 
 _TOON_HEADER = re.compile(r"\[(\d+)\]\{([^}]*)\}\s*:")
@@ -323,15 +342,21 @@ class MCPClient:
         return await self.call("query-my-coupons")
 
     async def calculate_price(self, **kw) -> dict:
-        """算价。返回结果中附加 *_yuan 字段（接口原始单位为「分」）。"""
+        """算价。顶层与 productList 逐项都附加 *_yuan（接口原始单位为「分」）。
+
+        实测返回结构（到店 beType=1）::
+
+            price / productPrice / originalPrice / discount   → 分
+            productList[].subtotal / originalSubtotal         → 分
+            takeWayList[].code  → eat-in(堂食) / locker-in(外带)
+                                 下单时 takeWayCode 必传，值取这里
+        """
         d = await self.call("calculate-price", kw, use_cache=False) or {}
         data = dict(d.get("data") or d)
-        for k, v in list(data.items()):
-            if isinstance(v, (int, float, str)) and re.search(
-                    r"(amount|price|fee|total)", k, re.I):
-                y = fen_to_yuan(v)
-                if y is not None:
-                    data[f"{k}_yuan"] = y
+        add_yuan_fields(data)
+        for p in data.get("productList") or []:
+            if isinstance(p, dict):
+                add_yuan_fields(p)
         return data
 
     async def create_order(self, **kw) -> dict:

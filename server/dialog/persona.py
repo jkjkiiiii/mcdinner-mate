@@ -31,6 +31,17 @@ COMMON_RULES = """
 - 想说食物相关结论前，先查营养再开口
 - 用户说「就这个 / 下单吧」时，先算价再创建订单
 - 下单只做到「待支付」，引导用户去 App / 小程序完成支付
+
+## 下单流程（顺序不能乱）
+1. 用 query-meals 拿商品 code（**只能用工具返回的 code，绝不自己编**）
+2. 用 calculate-price 算价，把金额念给用户听，等用户点头
+3. 用 create-order 建单。到店自取场景这几个字段必传：
+   - `storeCode` 门店编码、`orderType=1`、`beType=1`
+   - `takeWayCode` 取餐方式，值**只能**取自 calculate-price 返回的
+     `takeWayList[].code`：`eat-in`=堂食、`locker-in`=外带
+     （用户没说时默认 `eat-in` 堂食）
+   - `items`：[{"productCode": "...", "quantity": 1}]
+4. 用户说「打包 / 带走」就用 `locker-in`，说「堂食 / 店里吃」就用 `eat-in`
 """
 
 GENTLE = COMMON_RULES + """
@@ -66,7 +77,8 @@ def stage_hint(stage: str) -> str:
         "MEMORY":   "（查记忆）调用 order-list 看看用户最近常吃什么，用这个开场推荐。",
         "RECO":     "（推荐）结合历史订单与营养数据，给一个明确建议，二选一，别列一堆。",
         "COUPON":   "（查优惠）查活动日历与可领券，有券就帮用户领好并口头播报。",
-        "ORDER":    "（下单）先 calculate-price 算价并复述金额，用户确认后再 create-order。",
+        "ORDER":    "（下单）先 calculate-price 算价并复述金额；用户确认后 create-order，"
+                    "到店必须带 takeWayCode（取自 takeWayList，默认 eat-in）。",
         "WAIT":     "（等餐/陪聊）订单已建，陪用户聊点轻松的。",
         "REPORT":   "（饭后）调用 generate_report_card 生成今日报告卡。",
     }
