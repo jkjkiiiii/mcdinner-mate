@@ -19,15 +19,24 @@
 
 ## 3.2 ADR-001：ASR 从 Web Speech API 改为本地 Whisper
 
-- **状态**：🟠 建议采纳（待确认）
+- **状态**：✅ **已采纳并验证通过**（2026-10-10）
 - **背景**：原方案 ASR 用浏览器 `Web Speech API`，理由"零成本、不依赖 Key"。
 - **问题**：Chrome/Edge 的语音识别由 Google 服务提供，**中国大陆网络环境基本不可用**；而语音是本项目的核心交互入口，不可降级。届时会在 Phase 3 才暴露，返工成本极高。
 - **决策**：改用本地 ASR。
-  - 首选：`faster-whisper`（`small` / `medium`），CTranslate2 加速，5090D 上中文实时率远超 1x
-  - 备选：`FunASR / SenseVoiceSmall`（中文效果更好，支持情感/事件标签）
+  - **最终采用**：`faster-whisper` + **`large-v3`**，CTranslate2 加速，`float16` on CUDA
+  - 备选（未采用）：`FunASR / SenseVoiceSmall`（中文效果更好，支持情感/事件标签）
 - **收益**：零网络依赖、零 API 成本、自带 VAD（顺带解决打断需求）、可利用闲置 5090D
-- **代价**：首次需下载模型（走 `hf-mirror.com`），增加约 0.5 天环境时间
-- **验证**：Phase 0 增加一项 —— 5090D 上跑一次实测，确认中文识别延迟 < 500ms
+- **代价**：模型 3.09GB，首次需下载（走 `hf-mirror.com`）
+- **✅ 验证结果**（2026-10-10 实测）
+  - 音频「今天加班到九点，累死了，想吃个麦辣鸡腿堡」（4.7s）
+    → 识别「今天加班到9点,累死了,想吃个麦辣鸡腿堡。」，耗时 **14.9s（含首次模型加载）**
+  - 验证脚本：`scripts/asr_check.py`
+- **⚠️ 实测踩到的两个坑**
+  1. **HF 缓存静默失败**：`snapshot_download` 报成功，但缓存里文件全是 **0 字节**，
+     直到加载时才炸 `File model.bin is incomplete`。改为 curl 直下到本地目录、
+     `ASR_MODEL` 填绝对路径即可绕开（本地目录入参 `WhisperModel` 原生支持）。
+  2. **必须锁 `av<19`**：PyAV 19 移除了 faster-whisper 在用的 `metadata_errors` 参数，
+     装到最新版直接 `TypeError`。上游只声明 `av>=11`，所以必须自己锁 `av>=14,<19`。
 
 ## 3.3 ADR-002：Python 版本用 3.12/3.13 而非 3.11
 

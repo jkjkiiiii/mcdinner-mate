@@ -1,5 +1,10 @@
 # McDinnerMate 可行性评估报告
 
+> 📌 **阅读提示**：本报告是 **2026-10-10 开工前**的评估快照，**保留原貌**以便追溯当时的判断依据。
+> 文中列出的所有 🔴 阻塞项（GitHub 仓库未创建、参赛文件名错误、ASR 选型风险、传播缺失等）
+> **已在当天全部解决**。最新状态请看文末 [§十二 复审](#十二复审2026-10-10-1520-开工前-go--no-go)
+> 与 [`docs/dev/07-roadmap.md`](docs/dev/07-roadmap.md) 的进度快照。
+
 > 评估日期：2026-10-10　|　评估对象：`McDinnerMate_实施文档.md`（v1 初版）
 > 赛事截止：**2026-10-25 23:59（北京时间）**，剩余 **15 天**
 > 评估依据：实施文档 + 麦当劳官方 MCP 文档（`open.mcd.cn/mcp/doc`）+ 赛事仓库 `M-China/mcd-developer-innovation-challenge` 的 `README.md` / `activityGuidelines.md` + 本机环境实测
@@ -327,3 +332,38 @@
 
 - `FEASIBILITY.md`（本文件）
 - `docs/dev/` 下 12 份切分后的模块文档（原 `McDinnerMate_实施文档.md` 内容已按主题拆分，原文件保留为快照，后续以 `docs/dev/` 为准）
+
+---
+
+# 十三、当日复盘（2026-10-10 21:00）· 阻塞项已清零
+
+> **结论：当日由条件性 GO 转为 FULL GO。** §12.3 列出的堵点已基本解决，
+> 项目进入「打磨 + 传播」阶段。
+
+## 13.1 阻塞项清零对照
+
+| §12.3 堵点 | 状态 | 证据 |
+| --- | --- | --- |
+| GitHub 仓库未创建 | ✅ 已解决 | [jkjkiiiii/mcdinner-mate](https://github.com/jkjkiiiii/mcdinner-mate) 已公开（2026-10-10 创建，在窗口期内） |
+| 参赛文件名错误 / 缺文件 | ✅ 已解决 | 5 件齐备；`CONTEST_DECLARATION.md` 与官方 diff **逐字节一致** |
+| 尚未报名 | ✅ 已解决 | 报名 Issue [#356](https://github.com/M-China/mcd-developer-innovation-challenge/issues/356) 已提交 |
+| ASR 方案未拍板 | ✅ 已解决 | 本地 faster-whisper large-v3 + RTX 5090 D 实测跑通（4.7s 音频识别准确） |
+| 传播策略缺失 | 🟠 进行中 | 策略已成型（[`docs/dev/11-promotion.md`](docs/dev/11-promotion.md)），但**演示素材与推广动作尚未产出** |
+| 真实下单未验证 | 🟠 待定 | 算价链路已实测通过；`create-order` 只到待支付，需人工确认后再试 |
+
+## 13.2 当日技术成果
+
+- MCP 客户端 → 对话引擎 → 语音 → 前端 → 报告卡 **全链路跑通**
+- **算价链路提速 6.4 倍**：5 轮 128s → 3 轮 20s（详见 [`docs/dev/10-risks.md`](docs/dev/10-risks.md) R23）
+- 14 个离线单测全绿（`pytest tests/ -q`）
+- 端到端实测：真实 LLM + 真实 MCP 三轮对话，算价 ¥33.5 与官方接口严格一致
+- 敏感信息自查通过（手机号 / Token / 地址三查无泄漏）
+
+## 13.3 ⚠️ 新发现的最大风险：门槛在涨
+
+**同日 15:00 榜单门槛为 1★，20:00 已涨至 3★（5 小时 +2★）**，报名数 356、上榜数 106。
+这意味着：
+
+- 原定「10~20★」目标需上修为 **15~25★**
+- **传播必须立刻启动**，不能等做完再推 —— Star 需要时间发酵
+- 详见 [`docs/dev/11-promotion.md`](docs/dev/11-promotion.md) §11.0
